@@ -9,13 +9,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    libzip-dev
 
 # Очистка кэша
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Установка PHP-расширений (без pdo_mysql, так как без БД)
-RUN docker-php-ext-install mbstring exif pcntl bcmath gd
+# Установка PHP-расширений (pdo_mysql для MySQL)
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Получение Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -36,10 +37,15 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Переключение на пользователя app
 USER app
 
-# Установка зависимостей Composer (для продакшена, без dev)
+# Установка зависимостей Composer (для продакшена)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Кэширование конфига (для продакшена)
+# Генерация ключа и запуск миграций
+RUN php artisan key:generate --no-interaction --force
+# Миграции (запускать только если БД доступна; можно вынести в отдельный скрипт)
+# RUN php artisan migrate --force
+
+# Кэширование для продакшена
 RUN php artisan config:cache
 RUN php artisan route:cache
 RUN php artisan view:cache
