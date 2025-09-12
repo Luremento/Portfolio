@@ -26,6 +26,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN useradd -G www-data,root -u 1000 -d /home/app app
 RUN mkdir -p /home/app/.composer && chown -R app:app /home/app
 
+# Генерация ключа и миграции (как USER app)
+USER app
+RUN php artisan key:generate --no-interaction --force
+RUN php artisan migrate --force  # Запустит миграции при билде; --force для продакшена
+
 # Рабочая директория
 WORKDIR /var/www/html
 
