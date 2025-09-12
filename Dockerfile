@@ -1,50 +1,48 @@
-Dockerfile for Laravel Portfolio on Render
+# Base image: PHP 8.1 with Apache
+FROM php:8.1-apache
 
- # Base image: PHP 8.1 with Apache
- FROM php:8.1-apache
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip
 
- # Install system dependencies
- RUN apt-get update && apt-get install -y \
-     libpng-dev \
-     libonig-dev \
-     libxml2-dev \
-     zip \
-     unzip \
-     git \
-     curl \
-     libzip-dev \
-     libpq-dev \
-     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip pdo_pgsql
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
- # Install Composer
- COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
- # Enable Apache mod_rewrite
- RUN a2enmod rewrite
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
- # Copy application files
- WORKDIR /var/www/html
- COPY . .
+# Create system user to run Composer and Artisan Commands
+RUN useradd -G www-data,root -u 1000 -d /home/app app
+RUN mkdir -p /home/app/.composer && \
+    chown -R app:app /home/app
 
- # Install Composer dependencies
- RUN composer install --no-dev --optimize-autoloader
+# Set working directory
+WORKDIR /var/www/html
 
- # Copy .env
- COPY .env.example .env
+# Copy existing application directory contents
+COPY . /var/www/html
 
- # Generate app key and run migrations
- RUN php artisan key:generate
- RUN php artisan migrate --force
+# Copy existing application directory permissions
+COPY --chown=app:app . /var/www/html
 
- # Create storage link
- RUN php artisan storage:link
+# Change current user to app
+USER app
 
- # Set permissions
- RUN chown -R www-data:www-data /var/www/html
- RUN chmod -R 755 /var/www/html/storage
+# Composer install
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
- # Expose port 80
- EXPOSE 80
+# Change back to www-data for Apache
+USER www-data
 
- # Start Command: Run Laravel server (replaces Render Start Command)
- CMD php artisan serve --host=0.0.0.0 --port=80
+# Expose port 80 and start apache
+EXPOSE 80
+CMD ["apache2-foreground"]
