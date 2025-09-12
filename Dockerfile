@@ -1,7 +1,7 @@
-# Base image: PHP 8.1 with Apache
+# Base image: PHP 8.1 with Apache (для Laravel)
 FROM php:8.1-apache
 
-# Install system dependencies
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -9,40 +9,42 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install zip
 
-# Clear cache
+# Очистка кэша
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# Установка PHP-расширений (для Laravel и MySQL/Postgres)
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Get latest Composer
+# Получение Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create system user to run Composer and Artisan Commands
+# Создание пользователя для Composer и Artisan
 RUN useradd -G www-data,root -u 1000 -d /home/app app
-RUN mkdir -p /home/app/.composer && \
-    chown -R app:app /home/app
+RUN mkdir -p /home/app/.composer && chown -R app:app /home/app
 
-# Set working directory
+# Рабочая директория
 WORKDIR /var/www/html
 
-# Copy existing application directory contents
+# Копирование приложения
 COPY . /var/www/html
-
-# Copy existing application directory permissions
 COPY --chown=app:app . /var/www/html
 
-# Change current user to app
+# Переключение на пользователя app
 USER app
 
-# Composer install
+# Установка зависимостей Composer (для продакшена)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Change back to www-data for Apache
+# Переключение обратно на www-data для Apache
 USER www-data
 
-# Expose port 80 and start apache
+# Включение Apache-модулей (если нужно для Laravel)
+RUN a2enmod rewrite
+
+# Экспорт порта и запуск
 EXPOSE 80
 CMD ["apache2-foreground"]
