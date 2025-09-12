@@ -1,31 +1,59 @@
- # Установка зависимостей
- RUN apt-get update && apt-get install -y \
-     libpng-dev \
-     libonig-dev \
-     libxml2-dev \
-     zip \
-     unzip \
-     git \
-     curl \
-     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+Dockerfile for Laravel Portfolio on Render
 
- # Composer
- COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+Base image: PHP 8.1 with Apache
 
- # Apache config
- RUN a2enmod rewrite
- RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
+FROM php:8.1-apache
 
- WORKDIR /var/www
- COPY . .
+Install system dependencies
 
- RUN composer install --no-dev --optimize-autoloader
- RUN cp .env.example .env
- RUN php artisan key:generate
- RUN php artisan storage:link
+RUN apt-get update && apt-get install -y 
+libpng-dev 
+libonig-dev 
+libxml2-dev 
+zip 
+unzip 
+git 
+curl 
+libzip-dev 
+libpq-dev 
+&& docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip pdo_pgsql
 
- RUN chown -R www-data:www-data /var/www
- RUN chmod -R 755 /var/www/storage
+Install Composer
 
- EXPOSE 9000
- CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+Enable Apache mod_rewrite
+
+RUN a2enmod rewrite
+
+Copy application files
+
+WORKDIR /var/www/html COPY . .
+
+Install Composer dependencies
+
+RUN composer install --no-dev --optimize-autoloader
+
+Copy .env
+
+COPY .env.example .env
+
+Generate app key and run migrations
+
+RUN php artisan key:generate RUN php artisan migrate --force
+
+Create storage link
+
+RUN php artisan storage:link
+
+Set permissions
+
+RUN chown -R www-data:www-data /var/www/html RUN chmod -R 755 /var/www/html/storage
+
+Expose port 80
+
+EXPOSE 80
+
+Start Apache
+
+CMD ["apache2-foreground"]
