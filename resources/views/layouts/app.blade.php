@@ -1,13 +1,33 @@
 <!DOCTYPE html>
-<html lang="ru" class="light">
+<html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Моё портфолио</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        };
+    </script>
+    <script>
+        // Конфигурация Tailwind для поддержки dark mode (class-based)
+        window.tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        };
+    </script>
 </head>
-<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-['Roboto'] flex flex-col min-h-screen transition-colors duration-300">
+
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-roboto flex flex-col min-h-screen transition-colors duration-300">
     <nav class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white p-4 shadow-md">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <ul class="flex space-x-4">
@@ -17,8 +37,7 @@
                 <li><a href="{{ route('contact') }}" class="hover:text-blue-500 dark:hover:text-blue-400 transition-colors">Контакты</a></li>
             </ul>
             <button id="theme-toggle" class="bg-gray-200 dark:bg-gray-700 p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                <span class="sr-only">Toggle theme</span>
-                🌙 / ☀️
+                <span id="theme-icon">🌙</span>
             </button>
         </div>
     </nav>
@@ -33,25 +52,40 @@
 
     <script>
         const html = document.documentElement;
-        const toggle = document.getElementById('theme-toggle');
+        const toggleButton = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
 
-        // Загрузка темы из localStorage
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            html.classList.add('dark');
-        } else {
-            html.classList.remove('dark');
+        // Функция для реинициализации Tailwind (для Play CDN v4)
+        function reinitTailwind() {
+            if (window.tailwind && window.tailwind.reinit) {
+                window.tailwind.reinit();
+            }
         }
 
-        // Toggle темы
-        toggle.addEventListener('click', () => {
+        // Проверка сохранённой темы или системной настройки
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+            themeIcon.textContent = '☀️';
+        } else {
+            html.classList.remove('dark');
+            themeIcon.textContent = '🌙';
+        }
+
+        // Переключение темы
+        toggleButton.addEventListener('click', () => {
             if (html.classList.contains('dark')) {
                 html.classList.remove('dark');
-                localStorage.theme = 'light';
+                localStorage.setItem('theme', 'light');
+                themeIcon.textContent = '🌙';
             } else {
                 html.classList.add('dark');
-                localStorage.theme = 'dark';
+                localStorage.setItem('theme', 'dark');
+                themeIcon.textContent = '☀️';
             }
+            // Реинициализируем Tailwind для обновления стилей
+            reinitTailwind();
         });
     </script>
 </body>
+
 </html>
