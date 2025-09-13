@@ -10,12 +10,14 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libzip-dev
+    libzip-dev \
+    libpq-dev \
+    && docker-php-ext-install zip
 
 # Очистка кэша
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Установка PHP-расширений (pdo_mysql для MySQL)
+# Установка PHP-расширений (pdo_mysql для Postgres)
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Получение Composer
@@ -40,10 +42,9 @@ USER app
 # Установка зависимостей Composer (для продакшена)
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Генерация ключа и запуск миграций
+# Генерация ключа (миграции раскомментируем после настройки БД)
 RUN php artisan key:generate --no-interaction --force
-# Миграции (запускать только если БД доступна; можно вынести в отдельный скрипт)
-# RUN php artisan migrate --force
+# RUN php artisan migrate --force  # Раскомментируйте после env vars
 
 # Кэширование для продакшена
 RUN php artisan config:cache
