@@ -10,8 +10,15 @@ export PATH="/tmp:$PATH"  # Добавляем Composer в PATH
 echo "Running composer install..."
 /tmp/composer install --no-dev --optimize-autoloader
 
-# Шаг 3: Laravel-команды для продакшена
+# Шаг 3: Устанавливаем и собираем фронтенд (Vite/React/Tailwind)
+echo "Building frontend..."
+npm ci --prefer-offline
+npm run build
+
+# Шаг 4: Laravel-команды для продакшена
 echo "Running Laravel optimizations..."
+php artisan config:clear
+php artisan cache:clear
 php artisan key:generate --force
 php artisan config:cache
 php artisan route:cache
