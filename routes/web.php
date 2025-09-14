@@ -20,6 +20,3 @@ Route::get('/contact', function () {
 });
 
 Route::post('/contact', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.store');
-Route::get('/todo', function () {
-     return view('todo');
-});
