@@ -1,5 +1,5 @@
-/node_modules
 /vendor
-/storage
-/.env
-bootstrap/cache/*
+/node_modules
+/storage/*
+/bootstrap/cache/*
+.env
