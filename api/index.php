@@ -23,7 +23,3 @@ $response = $kernel->handle(
 );
 $response->send();
 $kernel->terminate($request, $response);
-
-$app->handleRequest(Request::capture());
-
-
