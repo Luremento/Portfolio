@@ -17,7 +17,7 @@
   ],
   "functions": {
     "public/index.php": {
-      "runtime": "@vercel/php@0.6.2"  // Попробуй 0.6.2 или просто "@vercel/php" — это старые, но существующие версии
+      "runtime": "@vercel/php@0.6.2"
     }
   }
 }
