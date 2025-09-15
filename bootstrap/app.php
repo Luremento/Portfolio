@@ -4,8 +4,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// Отключаем динамическое кэширование пакетов для Vercel
+// Отключаем RegisterFacades, чтобы избежать записи в cache
 $app = new Illuminate\Foundation\Application(dirname(__DIR__));
+$app->useBootstrapPath(dirname(__DIR__) . '/bootstrap');
 $app->instance('Illuminate\Foundation\PackageManifest', new class {
     public function getManifest() { return []; }
     public function config($key = null, $default = null) { return []; }
