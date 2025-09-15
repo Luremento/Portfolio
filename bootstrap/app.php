@@ -4,7 +4,14 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+// Отключаем динамическое кэширование пакетов для Vercel
+$app = new Illuminate\Foundation\Application(dirname(__DIR__));
+$app->instance('Illuminate\Foundation\PackageManifest', new class {
+    public function getManifest() { return []; }
+    public function config($key = null, $default = null) { return []; }
+});
+
+return $app->configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
