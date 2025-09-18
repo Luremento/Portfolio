@@ -7,14 +7,6 @@
     }
   },
 
-   "builds": [
-    {
-      "src": "vite.config.js",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "public" }
-    }
-  ],
-  
   "routes": [
     {
       "src": "/(css|js|images|fonts|favicon\\.ico|robots\\.txt)(.*)",
