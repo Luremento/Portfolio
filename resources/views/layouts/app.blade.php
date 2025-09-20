@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>molly - Fullstack Developer</title>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    @vite('resources/css/app.css')
-    <script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -40,7 +41,7 @@
                 }
             }
         };
-    </script>
+    </script> -->
 </head>
 
 <body class="bg-background text-foreground font-sans antialiased min-h-screen">
