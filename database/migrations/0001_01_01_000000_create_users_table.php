@@ -3,12 +3,11 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -17,9 +16,23 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('is_admin')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
+
+        // Создаём администратора с помощью DB::table
+        $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
+        if (!DB::table('users')->where('email', $adminEmail)->exists()) {
+            DB::table('users')->insert([
+                'name' => env('ADMIN_NAME', 'Admin'),
+                'email' => $adminEmail,
+                'password' => Hash::make(env('ADMIN_PASSWORD', 'defaultAdminPassword123')),
+                'is_admin' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -37,11 +50,12 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
+        // Удаляем администратора
+        $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
+        DB::table('users')->where('email', $adminEmail)->delete();
+
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
